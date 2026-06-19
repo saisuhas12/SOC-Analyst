@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}User Provisioning - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">ANALYST PROVISIONING CENTER</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">SECURE ADMINISTRATION & IAM PROVISIONS</p>
+        </div>
+        <div>
+            <span class="badge bg-dark border border-danger text-mono p-2">
+                <i class="bi bi-shield-slash text-danger me-1"></i> CONTROL LEVEL: ADMIN PRIVILEGES
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Add User Form -->
+        <div class="col-12 col-lg-5">
+            <div class="cyber-card p-4">
+                <h5 class="text-light mb-3 font-display"><i class="bi bi-person-plus text-success me-2"></i> PROVISION NEW ACCOUNT</h5>
+                <p class="text-muted small">
+                    Create credentials for additional security analysts. All passwords are automatically hashed with bcrypt salts inside SQL tables.
+                </p>
+
+                <form action="{{ url_for('admin.users') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="filter-label mb-1">Username</label>
+                        <input type="text" class="form-control form-control-cyber text-mono" id="username" name="username" placeholder="e.g. jdoe_analyst" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="filter-label mb-1">Corporate Email Address</label>
+                        <input type="email" class="form-control form-control-cyber text-mono" id="email" name="email" placeholder="e.g. j.doe@sentinelxdr.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="filter-label mb-1">Initial Temporary Password</label>
+                        <input type="password" class="form-control form-control-cyber text-mono" id="password" name="password" placeholder="Enter secure password" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="role" class="filter-label mb-1">Role Type</label>
+                        <select name="role" id="role" class="form-select form-control-cyber text-mono">
+                            <option value="analyst" selected>Security Analyst (Default)</option>
+                            <option value="admin">SOC Admin / Manager</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-cyber">
+                            <i class="bi bi-person-check me-2"></i>Authorize Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Provisioned Users List -->
+        <div class="col-12 col-lg-7">
+            <div class="cyber-card">
+                <div class="cyber-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="text-light mb-0 font-display"><i class="bi bi-people text-success me-2"></i> AUTHORIZED ACCOUNTS</h5>
+                    <span class="badge bg-dark border border-secondary text-mono">{{ users | length }} Analysts Enrolled</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-cyber mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Enrolled Date</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td class="text-light text-mono font-weight-bold" style="font-size: 0.85rem;">
+                                    {{ u.username }}
+                                    {% if u.id == session.get('user_id') %}
+                                        <span class="text-success small ms-2 text-mono" style="font-size: 0.65rem;">[YOU]</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                    {{ u.email }}
+                                </td>
+                                <td>
+                                    <span class="badge {% if u.role == 'admin' %}bg-danger{% else %}bg-secondary{% endif %} text-mono" style="font-size: 0.7rem;">
+                                        {{ u.role | upper }}
+                                    </span>
+                                </td>
+                                <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                    {{ u.created_at.strftime('%Y-%m-%d %H:%M') if u.created_at else 'N/A' }}
+                                </td>
+                                <td class="text-end">
+                                    {% if u.id != session.get('user_id') %}
+                                    <form action="{{ url_for('admin.delete_user', user_id=u.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Deprovisioning this analyst account will immediately terminate their active sessions and clean all related files uploaded. Proceed?');">
+                                        <button type="submit" class="btn btn-sm btn-cyber-danger py-0 px-2 text-mono" style="font-size: 0.75rem;">
+                                            Deprovision
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                        <span class="text-muted text-mono small" style="font-size: 0.75rem;">Immutable</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

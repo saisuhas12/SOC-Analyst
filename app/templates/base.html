@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SOC Sentinel XDR{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar d-flex flex-column justify-content-between">
+        <div>
+            <div class="sidebar-logo">
+                <i class="bi bi-shield-lock-fill text-success fs-3 me-2"></i>
+                <span class="brand-text text-success fs-5 fw-bold">SENTINEL XDR</span>
+            </div>
+
+            {% if g.user %}
+            <nav class="nav flex-column">
+                <a class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}"
+                    href="{{ url_for('dashboard.index') }}">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+                <a class="nav-link {% if request.endpoint == 'main.uploads' %}active{% endif %}"
+                    href="{{ url_for('main.uploads') }}">
+                    <i class="bi bi-cloud-arrow-up me-2"></i> Log Uploads
+                </a>
+                <a class="nav-link {% if request.endpoint == 'main.events' %}active{% endif %}"
+                    href="{{ url_for('main.events') }}">
+                    <i class="bi bi-shield-slash me-2"></i> Threat Explorer
+                </a>
+                {% if g.user.role == 'admin' %}
+                <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}"
+                    href="{{ url_for('admin.users') }}">
+                    <i class="bi bi-people me-2"></i> User Provisioning
+                </a>
+                {% endif %}
+            </nav>
+            {% endif %}
+        </div>
+
+        {% if g.user %}
+        <div class="p-3 border-top border-secondary bg-dark">
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-success rounded-circle me-2" style="width: 8px; height: 8px;"></div>
+                <small class="text-muted text-mono">Analyst: <span class="text-light fw-bold">{{ g.user.username
+                        }}</span></small>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-secondary text-mono" style="font-size: 0.7rem;">{{ g.user.role | upper }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-danger py-0 px-2 text-mono"
+                    style="font-size: 0.75rem;">
+                    <i class="bi bi-box-arrow-right"></i> LOGOUT
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="main-wrapper">
+        <!-- System Toast Notifications -->
+        <div class="container-fluid px-0 mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-cyber alert-{{ category }} alert-dismissible fade show" role="alert"
+                id="systemAlert_{{ loop.index }}">
+                <div class="d-flex align-items-center">
+                    {% if category == 'success' %}
+                    <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
+                    {% elif category == 'danger' %}
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5 text-danger"></i>
+                    {% elif category == 'warning' %}
+                    <i class="bi bi-exclamation-circle-fill me-2 fs-5 text-warning"></i>
+                    {% else %}
+                    <i class="bi bi-info-circle-fill me-2 fs-5 text-info"></i>
+                    {% endif %}
+                    <div>{{ message }}</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <!-- Main JS Application Logic -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

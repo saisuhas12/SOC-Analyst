@@ -1,0 +1,406 @@
+/* SOC Sentinel XDR - Premium Cyber Dark Theme Stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --bg-primary: #0b0f19;
+    --bg-secondary: #0f1626;
+    --bg-card: #151c2c;
+    --bg-sidebar: #0a0d16;
+    --border-color: rgba(255, 255, 255, 0.07);
+    --border-glow: rgba(0, 230, 118, 0.2);
+
+    /* Neon Accents */
+    --accent-primary: #00e676;
+    /* Cyber Neon Green */
+    --accent-info: #00b0ff;
+    /* Cyber Neon Blue */
+    --accent-warning: #ffea00;
+    /* Cyber Neon Amber */
+    --accent-danger: #ff9100;
+    /* Cyber Neon Orange */
+    --accent-critical: #ff1744;
+    /* Cyber Neon Red */
+
+    --text-main: #f5f6fa;
+    --text-muted: #8b9bb4;
+    --font-sans: 'Inter', sans-serif;
+    --font-display: 'Orbitron', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* Base Headings & UI Labels */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.brand-text {
+    font-family: var(--font-display);
+    letter-spacing: 0.5px;
+}
+
+/* Sidebar Layout */
+.sidebar {
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    position: fixed;
+    width: 260px;
+    z-index: 100;
+}
+
+.sidebar .nav-link {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    margin: 0.2rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar .nav-link.active {
+    color: var(--bg-primary);
+    background-color: var(--accent-primary);
+    font-weight: 600;
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-logo img {
+    height: 32px;
+    margin-right: 10px;
+}
+
+/* Main Content Area */
+.main-wrapper {
+    margin-left: 260px;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+/* Glassmorphism Cards */
+.cyber-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cyber-card:hover {
+    border-color: rgba(0, 230, 118, 0.3);
+    box-shadow: 0 4px 25px rgba(0, 230, 118, 0.05);
+}
+
+.cyber-card-header {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.01);
+}
+
+/* Stat Cards Glows */
+.stat-card {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.stat-card.green {
+    border-left: 4px solid var(--accent-primary);
+}
+
+.stat-card.blue {
+    border-left: 4px solid var(--accent-info);
+}
+
+.stat-card.amber {
+    border-left: 4px solid var(--accent-warning);
+}
+
+.stat-card.orange {
+    border-left: 4px solid var(--accent-danger);
+}
+
+.stat-card.red {
+    border-left: 4px solid var(--accent-critical);
+}
+
+/* Custom Buttons with cyber gradient */
+.btn-cyber {
+    background-color: transparent;
+    border: 1px solid var(--accent-primary);
+    color: var(--accent-primary);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.btn-cyber:hover {
+    background-color: var(--accent-primary);
+    color: var(--bg-primary);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+}
+
+.btn-cyber-danger {
+    background-color: transparent;
+    border: 1px solid var(--accent-critical);
+    color: var(--accent-critical);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.btn-cyber-danger:hover {
+    background-color: var(--accent-critical);
+    color: var(--bg-primary);
+    box-shadow: 0 0 15px rgba(255, 23, 68, 0.4);
+}
+
+/* Cyber Tables */
+.table-cyber {
+    color: var(--text-main);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-cyber th {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 1rem;
+}
+
+.table-cyber td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    transition: background-color 0.2s ease;
+}
+
+.table-cyber tbody tr:hover td {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Cyber Badges */
+.badge-cyber {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.badge-low {
+    background-color: rgba(0, 230, 118, 0.1);
+    color: var(--accent-primary);
+    border: 1px solid rgba(0, 230, 118, 0.2);
+}
+
+.badge-medium {
+    background-color: rgba(255, 234, 0, 0.1);
+    color: var(--accent-warning);
+    border: 1px solid rgba(255, 234, 0, 0.2);
+}
+
+.badge-high {
+    background-color: rgba(255, 145, 0, 0.1);
+    color: var(--accent-danger);
+    border: 1px solid rgba(255, 145, 0, 0.2);
+}
+
+.badge-critical {
+    background-color: rgba(255, 23, 68, 0.1);
+    color: var(--accent-critical);
+    border: 1px solid rgba(255, 23, 68, 0.3);
+    animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 23, 68, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 23, 68, 0);
+    }
+}
+
+/* Advanced Filter Section */
+.filter-panel {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.filter-label {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.form-control-cyber {
+    background-color: rgba(11, 15, 25, 0.8) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-main) !important;
+    border-radius: 4px;
+}
+
+.form-control-cyber:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 8px rgba(0, 230, 118, 0.2) !important;
+}
+
+/* Drag & Drop Upload Panel */
+.upload-dropzone {
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 3rem;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.01);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+    border-color: var(--accent-primary);
+    background-color: rgba(0, 230, 118, 0.02);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* Terminal Font Elements */
+.text-mono {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+
+/* Alert Notification Overrides */
+.alert-cyber {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.alert-cyber.alert-success {
+    border-left: 4px solid var(--accent-primary);
+}
+
+.alert-cyber.alert-danger {
+    border-left: 4px solid var(--accent-critical);
+}
+
+.alert-cyber.alert-warning {
+    border-left: 4px solid var(--accent-warning);
+}
+
+.alert-cyber.alert-info {
+    border-left: 4px solid var(--accent-info);
+}
+
+/* Login Screen layout */
+.login-bg {
+    background: radial-gradient(circle at center, #0f1626 0%, #05070c 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    max-width: 450px;
+    width: 100%;
+    border-top: 4px solid var(--accent-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+    }
+
+    .main-wrapper {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+}
+
+/* Global Override for Bootstrap text-muted for dark theme readability */
+.text-muted {
+    color: #a0aec0 !important; /* High readability steel-gray color */
+}

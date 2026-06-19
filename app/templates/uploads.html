@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Log Uploads - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">LOG INGESTION CENTER</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">UPLOAD AND ANALYZE MULTIPLE LOG STREAMS</p>
+        </div>
+        <div>
+            <span class="badge bg-dark border border-secondary text-mono p-2">
+                <i class="bi bi-shield-fill-check text-success me-1"></i> SUPPORTED: .TXT, .CSV, .LOG
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Ingestion Form -->
+        <div class="col-12 col-lg-5">
+            <div class="cyber-card p-4">
+                <h5 class="text-light mb-3 font-display"><i class="bi bi-file-earmark-arrow-up text-success me-2"></i> INGEST NEW LOGS</h5>
+                <p class="text-muted small">
+                    Drag and drop log files directly into the active scan sensor, or click the dropzone to browse your local device. The parsing engine processes files concurrently.
+                </p>
+
+                <form action="{{ url_for('main.uploads') }}" method="POST" enctype="multipart/form-data">
+                    <!-- Custom Drag and Drop zone -->
+                    <div class="upload-dropzone" id="uploadDropzone">
+                        <i class="bi bi-cloud-arrow-up-fill upload-icon d-block"></i>
+                        <span class="font-display text-light d-block mb-1">Drag files here</span>
+                        <span class="text-muted small">or click to search locally</span>
+                        <input type="file" name="files" id="fileInput" class="d-none" multiple accept=".txt,.csv,.log">
+                    </div>
+
+                    <!-- Display Selected Files Metadata -->
+                    <div id="selectedFiles" class="my-3">
+                        <span class="text-muted text-mono small">No files currently staged.</span>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-cyber">
+                            <i class="bi bi-cpu me-2"></i>Execute Analysis Engine
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Log Ingestion History -->
+        <div class="col-12 col-lg-7">
+            <div class="cyber-card">
+                <div class="cyber-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="text-light mb-0 font-display"><i class="bi bi-clock-history text-success me-2"></i> INGESTION HISTORY</h5>
+                    <span class="badge bg-dark border border-secondary text-mono">{{ uploads | length }} Files Registered</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-cyber mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Timestamp</th>
+                                <th>File Size</th>
+                                <th>Events Count</th>
+                                <th>Ingested By</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if uploads %}
+                                {% for item in uploads %}
+                                <tr>
+                                    <td class="text-light text-mono font-weight-bold" style="font-size: 0.85rem;">
+                                        {{ item.filename }}
+                                    </td>
+                                    <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                        {{ item.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    </td>
+                                    <td class="text-mono" style="font-size: 0.85rem;">
+                                        {{ item.file_size | filesizeformat }}
+                                    </td>
+                                    <td class="text-mono text-success fw-bold">
+                                        {{ item.log_count }}
+                                    </td>
+                                    <td class="text-muted">
+                                        {{ item.uploader.username if item.uploader else 'Unknown' }}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ url_for('main.events') }}?event_type=ALL&severity=ALL&username=&source_ip=&start_date=&end_date=&log_id={{ item.id }}" class="btn btn-sm btn-outline-info py-0 px-2 text-mono" style="font-size: 0.75rem;">
+                                                View
+                                            </a>
+                                            <form action="{{ url_for('main.delete_log', log_id=item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Deprovisioning this file will permanently delete all correlated security events from database tables. Proceed?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2 text-mono" style="font-size: 0.75rem;">
+                                                    Purge
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-5">
+                                        <i class="bi bi-folder-x fs-2 text-secondary d-block mb-2"></i>
+                                        No ingestion logs logged in the environment. Upload security files on the left to start collecting events.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

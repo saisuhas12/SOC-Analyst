@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Threat Explorer - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">THREAT EXPLORER & CORRELATION ENGINE</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">INTERACTIVE QUERIES & AUDITING OVER
+                COLLECTED TELEMETRY</p>
+        </div>
+        <div>
+            <!-- Export button carrying the active filters -->
+            <a href="{{ url_for('main.export_csv', username=filters.username, source_ip=filters.source_ip, severity=filters.severity, event_type=filters.event_type, start_date=filters.start_date, end_date=filters.end_date) }}"
+                class="btn btn-cyber">
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i>Export Filtered CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Advanced Filters Form -->
+    <div class="cyber-card filter-panel mb-4">
+        <form method="GET" action="{{ url_for('main.events') }}">
+            <div class="row g-3">
+                <!-- Username -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label for="username" class="filter-label mb-1">Target Username</label>
+                    <input type="text" name="username" id="username" class="form-control form-control-cyber text-mono"
+                        placeholder="e.g. root, admin" value="{{ filters.username or '' }}">
+                </div>
+
+                <!-- Source IP -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label for="source_ip" class="filter-label mb-1">Source IP Address</label>
+                    <input type="text" name="source_ip" id="source_ip" class="form-control form-control-cyber text-mono"
+                        placeholder="e.g. 192.168.1.1" value="{{ filters.source_ip or '' }}">
+                </div>
+
+                <!-- Severity Dropdown -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label for="severity" class="filter-label mb-1">Severity Level</label>
+                    <select name="severity" id="severity" class="form-select form-control-cyber">
+                        <option value="ALL" {% if not filters.severity or filters.severity=='ALL' %}selected{% endif %}>
+                            [ ALL ]</option>
+                        <option value="Low" {% if filters.severity=='Low' %}selected{% endif %}>Low</option>
+                        <option value="Medium" {% if filters.severity=='Medium' %}selected{% endif %}>Medium</option>
+                        <option value="High" {% if filters.severity=='High' %}selected{% endif %}>High</option>
+                        <option value="Critical" {% if filters.severity=='Critical' %}selected{% endif %}>Critical
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Event Type Dropdown -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label for="event_type" class="filter-label mb-1">Event Type</label>
+                    <select name="event_type" id="event_type" class="form-select form-control-cyber">
+                        <option value="ALL" {% if not filters.event_type or filters.event_type=='ALL' %}selected{% endif
+                            %}>[ ALL ]</option>
+                        {% for et in event_types %}
+                        <option value="{{ et }}" {% if filters.event_type==et %}selected{% endif %}>{{ et }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Range Start -->
+                <div class="col-6 col-lg-2">
+                    <label for="start_date" class="filter-label mb-1">Start Date</label>
+                    <input type="date" name="start_date" id="start_date"
+                        class="form-control form-control-cyber text-mono" value="{{ filters.start_date or '' }}">
+                </div>
+
+                <!-- Date Range End -->
+                <div class="col-6 col-lg-2">
+                    <label for="end_date" class="filter-label mb-1">End Date</label>
+                    <input type="date" name="end_date" id="end_date" class="form-control form-control-cyber text-mono"
+                        value="{{ filters.end_date or '' }}">
+                </div>
+
+                <!-- Actions buttons -->
+                <div class="col-12 d-flex justify-content-end gap-2 mt-3 pt-2 border-top border-secondary">
+                    <a href="{{ url_for('main.events') }}" class="btn btn-outline-secondary text-mono px-3">
+                        <i class="bi bi-x-circle me-1"></i>Reset
+                    </a>
+                    <button type="submit" class="btn btn-cyber px-4">
+                        <i class="bi bi-filter me-1"></i>Filter Signals
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Events Log Table -->
+    <div class="cyber-card">
+        <div class="cyber-card-header d-flex justify-content-between align-items-center">
+            <h5 class="text-light mb-0 font-display"><i class="bi bi-table text-success me-2"></i> SECURITY EVENT LOGS
+            </h5>
+            <span class="badge bg-dark border border-secondary text-mono">{{ events | length }} Records Matching</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-cyber mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">ID</th>
+                        <th style="width: 15%;">Timestamp</th>
+                        <th style="width: 12%;">Event Type</th>
+                        <th style="width: 10%;">Source IP</th>
+                        <th style="width: 12%;">Geo Location</th>
+                        <th style="width: 10%;">Username</th>
+                        <th style="width: 20%;">MITRE Mapping</th>
+                        <th style="width: 8%;">Severity</th>
+                        <th style="width: 8%;">Inspect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if events %}
+                    {% for event in events %}
+                    <tr>
+                        <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                            {{ event.id }}
+                        </td>
+                        <td class="text-mono text-muted" style="font-size: 0.85rem;">
+                            {{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </td>
+                        <td>
+                            <span class="badge bg-dark border border-secondary text-mono" style="font-size: 0.75rem;">
+                                {{ event.event_type }}
+                            </span>
+                        </td>
+                        <td class="text-mono fw-bold text-light">
+                            {{ event.source_ip }}
+                        </td>
+                        <td style="font-size: 0.85rem;">
+                            <i class="bi bi-geo-alt-fill text-muted me-1"></i>
+                            {% if event.country and event.country != 'Unknown' %}
+                            {{ event.country }} <span class="text-muted">({{ event.city }})</span>
+                            {% else %}
+                            <span class="text-muted">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-mono text-info fw-bold">
+                            {{ event.username or 'N/A' }}
+                        </td>
+                        <td style="font-size: 0.8rem;">
+                            {% if event.mitre_technique and event.mitre_technique != 'N/A' %}
+                            <div class="text-warning fw-bold">{{ event.mitre_technique }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">Tactic: {{ event.mitre_tactic }}</div>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span
+                                class="badge-cyber {% if event.severity == 'Critical' %}badge-critical{% elif event.severity == 'High' %}badge-high{% elif event.severity == 'Medium' %}badge-medium{% else %}badge-low{% endif %}">
+                                {{ event.severity }}
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 text-mono"
+                                style="font-size: 0.75rem;" data-bs-toggle="modal"
+                                data-bs-target="#eventModal_{{ event.id }}">
+                                Raw
+                            </button>
+
+                            <!-- Inspect Modal -->
+                            <div class="modal fade" id="eventModal_{{ event.id }}" tabindex="-1"
+                                aria-labelledby="eventModalLabel_{{ event.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content bg-dark border border-secondary text-light">
+                                        <div class="modal-header border-secondary">
+                                            <h5 class="modal-title font-display text-success"
+                                                id="eventModalLabel_{{ event.id }}">
+                                                <i class="bi bi-shield-exclamation me-2"></i>EVENT INSPECTION #{{
+                                                event.id }}
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white"
+                                                data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-mono" style="font-size: 0.85rem;">
+                                            <div class="mb-3">
+                                                <strong class="text-success text-uppercase">Raw Syslog / Log
+                                                    Message:</strong>
+                                                <div
+                                                    class="bg-black p-3 border border-secondary rounded mt-1 text-light-subtle text-wrap">
+                                                    {{ event.message }}
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 border-top border-secondary pt-3">
+                                                <div class="col-6"><strong>Timestamp:</strong> {{
+                                                    event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                                                <div class="col-6"><strong>Status:</strong> {{ event.status }}</div>
+                                                <div class="col-6"><strong>Source IP:</strong> {{ event.source_ip }}
+                                                </div>
+                                                <div class="col-6"><strong>Username:</strong> {{ event.username or 'N/A'
+                                                    }}</div>
+                                                <div class="col-6"><strong>Country:</strong> {{ event.country or
+                                                    'Unknown' }}</div>
+                                                <div class="col-6"><strong>City:</strong> {{ event.city or 'Unknown' }}
+                                                </div>
+                                                <div class="col-12 mt-2"><strong>Severity Level:</strong> <span
+                                                        class="badge bg-secondary">{{ event.severity }}</span></div>
+                                                <div class="col-12"><strong>MITRE Tech:</strong> {{
+                                                    event.mitre_technique or 'N/A' }}</div>
+                                                <div class="col-12"><strong>MITRE Tactic:</strong> {{ event.mitre_tactic
+                                                    or 'N/A' }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-secondary">
+                                            <button type="button" class="btn btn-outline-secondary text-mono"
+                                                data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <i class="bi bi-shield-check fs-2 text-success d-block mb-2"></i>
+                            No logs matching the specified query criteria found. Adjust the filter signals or upload new
+                            records.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

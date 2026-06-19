@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Alerts Cockpit - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">ALERTS COCKPIT & LIFECYCLE MONITOR</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">REAL-TIME THREAT TRIAGE, INCIDENT ASSIGNMENT, AND RESPONSE RESOLUTION</p>
+        </div>
+        <div>
+            <span class="badge bg-dark border border-secondary text-mono p-2">
+                <i class="bi bi-radioactive text-danger me-1"></i> MONITORS ENGAGED
+            </span>
+        </div>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="cyber-card filter-panel mb-4">
+        <form method="GET" action="{{ url_for('alerts.index') }}">
+            <div class="row g-3">
+                <!-- Alert Type -->
+                <div class="col-12 col-md-3">
+                    <label for="alert_type" class="filter-label mb-1">Alert Type</label>
+                    <select name="alert_type" id="alert_type" class="form-select form-control-cyber">
+                        <option value="ALL" {% if not filters.alert_type or filters.alert_type == 'ALL' %}selected{% endif %}>[ ALL ]</option>
+                        {% for type in alert_types %}
+                        <option value="{{ type }}" {% if filters.alert_type == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Severity -->
+                <div class="col-6 col-md-3">
+                    <label for="severity" class="filter-label mb-1">Severity</label>
+                    <select name="severity" id="severity" class="form-select form-control-cyber">
+                        <option value="ALL" {% if not filters.severity or filters.severity == 'ALL' %}selected{% endif %}>[ ALL ]</option>
+                        <option value="Low" {% if filters.severity == 'Low' %}selected{% endif %}>Low</option>
+                        <option value="Medium" {% if filters.severity == 'Medium' %}selected{% endif %}>Medium</option>
+                        <option value="High" {% if filters.severity == 'High' %}selected{% endif %}>High</option>
+                        <option value="Critical" {% if filters.severity == 'Critical' %}selected{% endif %}>Critical</option>
+                    </select>
+                </div>
+
+                <!-- Priority -->
+                <div class="col-6 col-md-3">
+                    <label for="priority" class="filter-label mb-1">Priority</label>
+                    <select name="priority" id="priority" class="form-select form-control-cyber">
+                        <option value="ALL" {% if not filters.priority or filters.priority == 'ALL' %}selected{% endif %}>[ ALL ]</option>
+                        <option value="P1" {% if filters.priority == 'P1' %}selected{% endif %}>P1 (Critical)</option>
+                        <option value="P2" {% if filters.priority == 'P2' %}selected{% endif %}>P2 (High)</option>
+                        <option value="P3" {% if filters.priority == 'P3' %}selected{% endif %}>P3 (Medium)</option>
+                        <option value="P4" {% if filters.priority == 'P4' %}selected{% endif %}>P4 (Low)</option>
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div class="col-12 col-md-3">
+                    <label for="status" class="filter-label mb-1">Status</label>
+                    <select name="status" id="status" class="form-select form-control-cyber">
+                        <option value="ALL" {% if not filters.status or filters.status == 'ALL' %}selected{% endif %}>[ ALL ]</option>
+                        <option value="New" {% if filters.status == 'New' %}selected{% endif %}>New</option>
+                        <option value="Acknowledged" {% if filters.status == 'Acknowledged' %}selected{% endif %}>Acknowledged</option>
+                        <option value="Resolved" {% if filters.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="False Positive" {% if filters.status == 'False Positive' %}selected{% endif %}>False Positive</option>
+                    </select>
+                </div>
+
+                <!-- Actions -->
+                <div class="col-12 d-flex justify-content-end gap-2 mt-3 pt-2 border-top border-secondary">
+                    <a href="{{ url_for('alerts.index') }}" class="btn btn-outline-secondary text-mono px-3">
+                        <i class="bi bi-x-circle me-1"></i>Reset
+                    </a>
+                    <button type="submit" class="btn btn-cyber px-4">
+                        <i class="bi bi-filter me-1"></i>Filter Alerts
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Alerts Cockpit Table -->
+    <div class="cyber-card">
+        <div class="cyber-card-header d-flex justify-content-between align-items-center">
+            <h5 class="text-light mb-0 font-display">
+                <i class="bi bi-exclamation-octagon text-danger me-2"></i> CORRELATED SECURITY ALERTS
+            </h5>
+            <span class="badge bg-dark border border-secondary text-mono">{{ alerts | length }} Matches</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-cyber mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">ID</th>
+                        <th style="width: 15%;">Alert Type</th>
+                        <th style="width: 10%;">Source IP</th>
+                        <th style="width: 10%;">Priority</th>
+                        <th style="width: 10%;">Severity</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 15%;">Assigned To</th>
+                        <th style="width: 12%;">Created At</th>
+                        <th style="width: 13%;" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if alerts %}
+                    {% for alert in alerts %}
+                    <tr {% if alert.status == 'Resolved' or alert.status == 'False Positive' %}style="opacity: 0.65;"{% endif %}>
+                        <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                            #{{ alert.id }}
+                        </td>
+                        <td>
+                            <strong class="text-light">{{ alert.alert_type }}</strong>
+                            {% if alert.mitre_technique %}
+                            <div class="text-muted text-mono" style="font-size: 0.7rem;">{{ alert.mitre_technique.split(' - ')[0] }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-mono fw-bold text-info">
+                            {{ alert.source_ip or 'N/A' }}
+                        </td>
+                        <td class="text-mono">
+                            <span class="badge {% if alert.priority == 'P1' %}bg-danger{% elif alert.priority == 'P2' %}bg-warning text-dark{% elif alert.priority == 'P3' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                {{ alert.priority }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-cyber {% if alert.severity == 'Critical' %}badge-critical{% elif alert.severity == 'High' %}badge-high{% elif alert.severity == 'Medium' %}badge-medium{% else %}badge-low{% endif %}">
+                                {{ alert.severity }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if alert.status == 'New' %}bg-primary{% elif alert.status == 'Acknowledged' %}bg-warning text-dark{% elif alert.status == 'Resolved' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ alert.status | upper }}
+                            </span>
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('alerts.assign', alert_id=alert.id) }}" class="d-inline">
+                                <select name="assigned_to_id" onchange="this.form.submit()" class="form-select form-select-sm bg-dark text-light border-secondary text-mono" style="font-size: 0.75rem; padding: 0.15rem 1.5rem 0.15rem 0.5rem;">
+                                    <option value="0">Unassigned</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if alert.assigned_to_id == user.id %}selected{% endif %}>{{ user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </td>
+                        <td class="text-mono text-muted" style="font-size: 0.8rem;">
+                            {{ alert.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-1">
+                                <!-- Details Trigger -->
+                                <button type="button" class="btn btn-sm btn-outline-info py-0 px-2 text-mono" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#alertModal_{{ alert.id }}">
+                                    Audit
+                                </button>
+                                
+                                {% if alert.status == 'New' %}
+                                <form method="POST" action="{{ url_for('alerts.acknowledge', alert_id=alert.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning py-0 px-2 text-mono" style="font-size: 0.75rem;" title="Acknowledge Alert">
+                                        Ack
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                {% if alert.status in ['New', 'Acknowledged'] %}
+                                <form method="POST" action="{{ url_for('alerts.resolve', alert_id=alert.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-success py-0 px-2 text-mono" style="font-size: 0.75rem;" title="Resolve Alert">
+                                        Resolve
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('alerts.false_positive', alert_id=alert.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2 text-mono" style="font-size: 0.75rem;" title="Mark False Positive">
+                                        FP
+                                    </button>
+                                </form>
+
+                                {% endif %}
+                            </div>
+
+                            <!-- Audit Modal -->
+                            <div class="modal fade" id="alertModal_{{ alert.id }}" tabindex="-1" aria-labelledby="alertModalLabel_{{ alert.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                    <div class="modal-content bg-dark border border-secondary text-light">
+                                        <div class="modal-header border-secondary">
+                                            <h5 class="modal-title font-display text-danger" id="alertModalLabel_{{ alert.id }}">
+                                                <i class="bi bi-shield-slash me-2"></i>ALERT INVESTIGATION AUDIT #{{ alert.id }}
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-mono text-start" style="font-size: 0.85rem;">
+                                            <div class="mb-3">
+                                                <strong class="text-danger text-uppercase">Alert Description:</strong>
+                                                <div class="bg-black p-3 border border-secondary rounded mt-1 text-light text-wrap">
+                                                    {{ alert.description }}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row g-3 border-top border-secondary pt-3">
+                                                <div class="col-md-6"><strong>Alert Type:</strong> <span class="text-light">{{ alert.alert_type }}</span></div>
+                                                <div class="col-md-6"><strong>Current Status:</strong> <span class="badge bg-secondary">{{ alert.status }}</span></div>
+                                                
+                                                <div class="col-md-6"><strong>Source IP Address:</strong> <span class="text-info fw-bold">{{ alert.source_ip or 'N/A' }}</span></div>
+                                                <div class="col-md-6"><strong>Assigned Analyst:</strong> <span class="text-warning">{{ alert.assigned_user.username if alert.assigned_user else 'Unassigned' }}</span></div>
+                                                
+                                                <div class="col-md-6"><strong>Severity Level:</strong> 
+                                                    <span class="badge-cyber {% if alert.severity == 'Critical' %}badge-critical{% elif alert.severity == 'High' %}badge-high{% elif alert.severity == 'Medium' %}badge-medium{% else %}badge-low{% endif %}">
+                                                        {{ alert.severity }}
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-6"><strong>Response Priority:</strong> 
+                                                    <span class="badge {% if alert.priority == 'P1' %}bg-danger{% elif alert.priority == 'P2' %}bg-warning text-dark{% elif alert.priority == 'P3' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                                        {{ alert.priority }} ({{ 'CRITICAL' if alert.priority == 'P1' else 'HIGH' if alert.priority == 'P2' else 'MEDIUM' if alert.priority == 'P3' else 'LOW' }})
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3 mt-1 pt-3 border-top border-secondary">
+                                                <div class="col-md-6"><strong>First Signal Detected:</strong> {{ alert.first_seen.strftime('%Y-%m-%d %H:%M:%S') if alert.first_seen else 'N/A' }}</div>
+                                                <div class="col-md-6"><strong>Last Signal Detected:</strong> {{ alert.last_seen.strftime('%Y-%m-%d %H:%M:%S') if alert.last_seen else 'N/A' }}</div>
+                                                <div class="col-md-6"><strong>Cumulative Occurrences:</strong> <span class="text-light">{{ alert.attempt_count or 1 }} attempts</span></div>
+                                                <div class="col-md-6"><strong>Resolved Timestamp:</strong> {{ alert.resolved_at.strftime('%Y-%m-%d %H:%M:%S') if alert.resolved_at else 'Active/Unresolved' }}</div>
+                                            </div>
+
+                                            {% if alert.mitre_technique %}
+                                            <div class="mt-3 p-3 bg-dark border border-secondary rounded" style="background-color: rgba(255, 145, 0, 0.02) !important;">
+                                                <strong class="text-warning"><i class="bi bi-diagram-3 me-2"></i>MITRE ATT&CK MATRIX ALIGNMENT:</strong>
+                                                <div class="row mt-2">
+                                                    <div class="col-6"><strong>Technique:</strong> <span class="text-light-subtle">{{ alert.mitre_technique }}</span></div>
+                                                    <div class="col-6"><strong>Tactical Category:</strong> <span class="text-light-subtle">{{ alert.mitre_tactic }}</span></div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if alert.alert_type == 'IOC Match' and alert.ioc_indicator %}
+                                            <div class="mt-3 p-3 bg-dark border border-secondary rounded" style="background-color: rgba(0, 176, 255, 0.02) !important;">
+                                                <strong class="text-info"><i class="bi bi-database me-2"></i>IOC INDICATOR DETAILS:</strong>
+                                                <div class="row mt-2">
+                                                    <div class="col-md-4"><strong>Type:</strong> {{ alert.ioc_indicator.ioc_type }}</div>
+                                                    <div class="col-md-8"><strong>Value:</strong> <code class="text-light">{{ alert.ioc_indicator.value }}</code></div>
+                                                    <div class="col-12 mt-2"><strong>IOC Description:</strong> <span class="text-muted">{{ alert.ioc_indicator.description or 'No description provided.' }}</span></div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <div class="mt-3 text-end text-muted" style="font-size: 0.75rem;">
+                                                To search associated raw signals, open the <a href="{{ url_for('main.events') }}?source_ip={{ alert.source_ip }}" class="text-success">Threat Explorer</a> for this IP.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-secondary">
+                                            <button type="button" class="btn btn-outline-secondary text-mono" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <i class="bi bi-shield-check fs-2 text-success d-block mb-2"></i>
+                            No security alerts registered. Correlated threat signals will appear here.
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

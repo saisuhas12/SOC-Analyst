@@ -11,6 +11,13 @@ def create_app(config_class=Config):
     # Initialize DB
     db.init_app(app)
     
+    # Ensure tables are created
+    with app.app_context():
+        from app.models import user, uploaded_log, security_event, alert, ioc, setting
+        db.create_all()
+
+
+    
     # Ensure upload folder exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
@@ -28,11 +35,16 @@ def create_app(config_class=Config):
     from app.blueprints.dashboard import dashboard_bp
     from app.blueprints.main import main_bp
     from app.blueprints.admin import admin_bp
+    from app.blueprints.alerts import alerts_bp
+    from app.blueprints.iocs import iocs_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(alerts_bp)
+    app.register_blueprint(iocs_bp)
+
     
     # Custom template filter for humanizing bytes sizes
     @app.template_filter('filesizeformat')

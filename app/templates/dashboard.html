@@ -8,18 +8,18 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="text-light fw-bold mb-1">SOC MONITORING COCKPIT</h2>
-            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">REAL-TIME THREAT INTELLIGENCE & SIGNAL ANALYSIS</p>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">REAL-TIME THREAT INTELLIGENCE & SIGNAL CORRELATION ENGINE</p>
         </div>
         <div class="text-end">
             <span class="badge bg-dark border border-secondary text-mono p-2">
-                <i class="bi bi-clock-history text-success me-1"></i> STATUS: AUDITING ACTIVE
+                <i class="bi bi-shield-fill-check text-success me-1"></i> STATUS: AUDITING ACTIVE
             </span>
         </div>
     </div>
 
     <!-- Stats Row -->
     <div class="row g-3 mb-4">
-        <!-- Total Logs Analyzed -->
+        <!-- Total Logs Ingested -->
         <div class="col-12 col-md-6 col-lg-3">
             <div class="cyber-card stat-card green">
                 <div>
@@ -30,66 +30,66 @@
             </div>
         </div>
 
-        <!-- Successful Logins -->
+        <!-- Threat Indicators (IOCs) -->
         <div class="col-12 col-md-6 col-lg-3">
             <div class="cyber-card stat-card blue">
                 <div>
-                    <h6 class="text-muted filter-label mb-1">Auth Success</h6>
-                    <h3 class="text-light fw-bold mb-0 text-mono">{{ successful_logins }}</h3>
+                    <h6 class="text-muted filter-label mb-1">Active IOCs</h6>
+                    <h3 class="text-light fw-bold mb-0 text-mono">{{ ioc_indicators_count }}</h3>
                 </div>
-                <div class="stat-icon text-info"><i class="bi bi-shield-check"></i></div>
+                <div class="stat-icon text-info"><i class="bi bi-activity"></i></div>
             </div>
         </div>
 
-        <!-- Failed Logins -->
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="cyber-card stat-card orange">
-                <div>
-                    <h6 class="text-muted filter-label mb-1">Auth Failures</h6>
-                    <h3 class="text-light fw-bold mb-0 text-mono">{{ failed_logins }}</h3>
-                </div>
-                <div class="stat-icon text-warning"><i class="bi bi-shield-exclamation"></i></div>
-            </div>
-        </div>
-
-        <!-- Suspicious IPs (3+ Failures) -->
+        <!-- Active Alerts -->
         <div class="col-12 col-md-6 col-lg-3">
             <div class="cyber-card stat-card red">
                 <div>
-                    <h6 class="text-muted filter-label mb-1">Suspicious IPs</h6>
-                    <h3 class="text-light fw-bold mb-0 text-mono">{{ suspicious_ip_count }}</h3>
+                    <h6 class="text-muted filter-label mb-1">Active Alerts</h6>
+                    <h3 class="text-light fw-bold mb-0 text-mono">{{ active_alerts_count }}</h3>
                 </div>
-                <div class="stat-icon text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+                <div class="stat-icon text-danger"><i class="bi bi-exclamation-octagon"></i></div>
+            </div>
+        </div>
+
+        <!-- Resolution Rate -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="cyber-card stat-card amber">
+                <div>
+                    <h6 class="text-muted filter-label mb-1">Resolution Rate</h6>
+                    <h3 class="text-light fw-bold mb-0 text-mono">{{ resolution_rate }}%</h3>
+                </div>
+                <div class="stat-icon text-warning"><i class="bi bi-patch-check"></i></div>
             </div>
         </div>
     </div>
 
-    <!-- Active Alerts Header / Summary -->
+    <!-- Active Alerts Banner -->
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="cyber-card p-3 border-danger d-flex align-items-center justify-content-between" style="background-color: rgba(255, 23, 68, 0.02);">
                 <div class="d-flex align-items-center">
                     <div class="spinner-grow text-danger me-3" role="status" style="width: 1rem; height: 1rem;">
-                        <span class="visually-hidden">Loading...</span>
+                        <span class="visually-hidden">Triage active...</span>
                     </div>
                     <div>
-                        <h6 class="mb-0 text-mono text-danger fw-bold">TOTAL CORRELATED ALERTS: {{ security_alerts_count }}</h6>
-                        <small class="text-muted">Brute-force password guessing, endpoint denial of services, and unauthorized access signals</small>
+                        <h6 class="mb-0 text-mono text-danger fw-bold">TOTAL ACTIVE THREAT ALERTS: {{ active_alerts_count }}</h6>
+                        <small class="text-muted">Unassigned or unacknowledged brute-force attacks, C2/IOC matches, and suspicious login activity patterns</small>
                     </div>
                 </div>
-                <a href="{{ url_for('main.events') }}" class="btn btn-sm btn-cyber">Investigate Alerts</a>
+                <a href="{{ url_for('alerts.index') }}" class="btn btn-sm btn-cyber">Triage Alerts Cockpit</a>
             </div>
         </div>
     </div>
 
     <!-- Charts Row 1 -->
     <div class="row g-3 mb-4">
-        <!-- Timeline Graph -->
+        <!-- Threats over Time -->
         <div class="col-12 col-lg-8">
             <div class="cyber-card">
                 <div class="cyber-card-header d-flex justify-content-between align-items-center">
-                    <h6 class="text-light mb-0 font-display"><i class="bi bi-graph-up text-success me-2"></i> Threat Timeline (7 Days)</h6>
-                    <span class="badge bg-secondary text-mono">Success vs. Failure</span>
+                    <h6 class="text-light mb-0 font-display"><i class="bi bi-graph-up text-success me-2"></i> Threats Over Time (Alert Timeline)</h6>
+                    <span class="badge bg-dark border border-secondary text-mono">7 Days Activity</span>
                 </div>
                 <div class="p-3" style="height: 300px; position: relative;">
                     <canvas id="timelineChart"></canvas>
@@ -97,11 +97,11 @@
             </div>
         </div>
 
-        <!-- Severity Distribution -->
+        <!-- Alert Severity Distribution -->
         <div class="col-12 col-lg-4">
             <div class="cyber-card">
                 <div class="cyber-card-header">
-                    <h6 class="text-light mb-0 font-display"><i class="bi bi-pie-chart text-success me-2"></i> Severity Distribution</h6>
+                    <h6 class="text-light mb-0 font-display"><i class="bi bi-pie-chart text-success me-2"></i> Alert Severity Distribution</h6>
                 </div>
                 <div class="p-3" style="height: 300px; position: relative;">
                     <canvas id="severityChart"></canvas>
@@ -112,23 +112,23 @@
 
     <!-- Charts Row 2 -->
     <div class="row g-3 mb-4">
-        <!-- Top Attack Countries -->
+        <!-- Alert Type breakdown -->
         <div class="col-12 col-lg-6">
             <div class="cyber-card">
                 <div class="cyber-card-header">
-                    <h6 class="text-light mb-0 font-display"><i class="bi bi-globe2 text-warning me-2"></i> Top Countries Attacking</h6>
+                    <h6 class="text-light mb-0 font-display"><i class="bi bi-shield-check text-warning me-2"></i> Attacking Vectors Distribution</h6>
                 </div>
                 <div class="p-3" style="height: 250px; position: relative;">
-                    <canvas id="countriesChart"></canvas>
+                    <canvas id="countriesChart"></canvas> <!-- keep id same to prevent script error -->
                 </div>
             </div>
         </div>
 
-        <!-- Top Target Host IPs -->
+        <!-- Top Threat Source IPs -->
         <div class="col-12 col-lg-6">
             <div class="cyber-card">
                 <div class="cyber-card-header">
-                    <h6 class="text-light mb-0 font-display"><i class="bi bi-hdd-network text-danger me-2"></i> Top Threat Source IPs</h6>
+                    <h6 class="text-light mb-0 font-display"><i class="bi bi-hdd-network text-danger me-2"></i> Top Attacking Source IPs</h6>
                 </div>
                 <div class="p-3" style="height: 250px; position: relative;">
                     <canvas id="ipsChart"></canvas>
@@ -142,59 +142,64 @@
         <div class="col-12">
             <div class="cyber-card">
                 <div class="cyber-card-header d-flex justify-content-between align-items-center">
-                    <h6 class="text-light mb-0 font-display"><i class="bi bi-exclamation-octagon text-danger me-2"></i> Critical & High Security Alerts</h6>
-                    <small class="text-muted text-mono">Last 8 Detected Anomalies</small>
+                    <h6 class="text-light mb-0 font-display"><i class="bi bi-exclamation-octagon text-danger me-2"></i> High & Critical Active Threats</h6>
+                    <small class="text-muted text-mono">Last 8 Unresolved Detections</small>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-cyber mb-0 align-middle">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Timestamp</th>
+                                <th>Alert Type</th>
                                 <th>Source IP</th>
-                                <th>Country / City</th>
-                                <th>Target User</th>
-                                <th>MITRE Technique</th>
+                                <th>Priority</th>
                                 <th>Severity</th>
-                                <th>Action</th>
+                                <th>Mitre Technique</th>
+                                <th class="text-end">Triage</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% if recent_alerts %}
                                 {% for alert in recent_alerts %}
                                 <tr>
-                                    <td class="text-mono text-muted" style="font-size: 0.85rem;">
-                                        {{ alert.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    <td class="text-mono text-muted" style="font-size: 0.8rem;">
+                                        #{{ alert.id }}
                                     </td>
-                                    <td class="text-mono font-weight-bold text-light">
-                                        {{ alert.source_ip }}
+                                    <td class="text-mono text-muted" style="font-size: 0.85rem;">
+                                        {{ alert.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    </td>
+                                    <td class="fw-bold text-light">
+                                        {{ alert.alert_type }}
+                                    </td>
+                                    <td class="text-mono text-info fw-bold">
+                                        {{ alert.source_ip or 'N/A' }}
                                     </td>
                                     <td>
-                                        <i class="bi bi-geo-alt-fill text-muted me-1"></i>
-                                        {{ alert.country or 'Unknown' }} ({{ alert.city or 'Unknown' }})
-                                    </td>
-                                    <td class="text-mono text-info">
-                                        {{ alert.username or 'N/A' }}
-                                    </td>
-                                    <td class="text-mono" style="font-size: 0.8rem;">
-                                        <span class="text-warning fw-bold">{{ alert.mitre_technique or 'N/A' }}</span>
+                                        <span class="badge {% if alert.priority == 'P1' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {{ alert.priority }}
+                                        </span>
                                     </td>
                                     <td>
                                         <span class="badge-cyber {% if alert.severity == 'Critical' %}badge-critical{% else %}badge-high{% endif %}">
                                             {{ alert.severity }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <a href="{{ url_for('main.events') }}?source_ip={{ alert.source_ip }}" class="btn btn-sm btn-outline-secondary py-0 px-2 text-mono" style="font-size: 0.75rem;">
-                                            Filter IP
+                                    <td class="text-mono text-warning" style="font-size: 0.8rem;">
+                                        {{ alert.mitre_technique or 'N/A' }}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('alerts.index') }}?alert_type={{ alert.alert_type }}" class="btn btn-sm btn-outline-cyber py-0 px-2 text-mono" style="font-size: 0.75rem;">
+                                            Triage Alert
                                         </a>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
+                                    <td colspan="8" class="text-center text-muted py-4">
                                         <i class="bi bi-check-circle text-success fs-3 d-block mb-2"></i>
-                                        No critical or high alerts registered. Upload log files to analyze signal history.
+                                        No active high or critical threats identified.
                                     </td>
                                 </tr>
                             {% endif %}

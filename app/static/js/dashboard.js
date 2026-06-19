@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
         high: '#ff9100',      // Neon Orange
         critical: '#ff1744',  // Neon Red
         blue: '#00b0ff',      // Neon Blue
+        purple: '#d500f9',    // Neon Purple
         background: '#151c2c',
         border: 'rgba(255, 255, 255, 0.07)',
         grid: 'rgba(255, 255, 255, 0.04)',
@@ -48,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             initSeverityChart(data.severity);
             initTimelineChart(data.timeline);
-            initCountriesChart(data.countries);
+            initTypesChart(data.types);
             initIPsChart(data.ips);
         })
         .catch(err => {
@@ -87,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 2. Timeline Line Chart (Success vs. Failures over 7 Days)
+    // 2. Timeline Line Chart (Threats Over Time - last 7 days)
     function initTimelineChart(timelineData) {
         const ctx = document.getElementById('timelineChart').getContext('2d');
         new Chart(ctx, {
@@ -96,10 +97,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 labels: timelineData.labels,
                 datasets: [
                     {
-                        label: 'Successful Logins',
-                        data: timelineData.success,
+                        label: 'Brute Force Alerts',
+                        data: timelineData.brute_force,
+                        borderColor: colors.high,
+                        backgroundColor: 'rgba(255, 145, 0, 0.03)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointBackgroundColor: colors.high,
+                        pointBorderColor: colors.background,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'IOC Match Alerts',
+                        data: timelineData.ioc_match,
                         borderColor: colors.blue,
-                        backgroundColor: 'rgba(0, 176, 255, 0.05)',
+                        backgroundColor: 'rgba(0, 176, 255, 0.03)',
                         fill: true,
                         tension: 0.3,
                         borderWidth: 2,
@@ -109,10 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         pointHoverRadius: 6
                     },
                     {
-                        label: 'Failed Logins (Threats)',
-                        data: timelineData.failed,
+                        label: 'Suspicious Login Alerts',
+                        data: timelineData.suspicious_login,
                         borderColor: colors.critical,
-                        backgroundColor: 'rgba(255, 23, 68, 0.05)',
+                        backgroundColor: 'rgba(255, 23, 68, 0.03)',
                         fill: true,
                         tension: 0.3,
                         borderWidth: 2,
@@ -144,18 +158,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 3. Top Attacking Countries Horizontal Bar Chart
-    function initCountriesChart(countryData) {
+    // 3. Top Vectors (Horizontal Bar Chart)
+    function initTypesChart(typeData) {
         const ctx = document.getElementById('countriesChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: countryData.labels,
+                labels: typeData.labels,
                 datasets: [{
-                    label: 'Failed Login Events',
-                    data: countryData.counts,
-                    backgroundColor: 'rgba(255, 145, 0, 0.65)', // High Amber-Orange
-                    borderColor: colors.high,
+                    label: 'Active Alerts',
+                    data: typeData.counts,
+                    backgroundColor: 'rgba(0, 176, 255, 0.65)', // High Blue
+                    borderColor: colors.blue,
                     borderWidth: 1.5,
                     borderRadius: 4
                 }]
@@ -194,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: ipData.labels,
                 datasets: [{
-                    label: 'Failed Logins',
+                    label: 'Correlated Alerts',
                     data: ipData.counts,
                     backgroundColor: 'rgba(255, 23, 68, 0.65)', // Red Accent
                     borderColor: colors.critical,

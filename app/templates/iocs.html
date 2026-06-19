@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Threat Intelligence - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">THREAT INTELLIGENCE & CORRELATION CONFIG</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">MANAGE INDICATORS OF COMPROMISE (IOCs), LOG MATCHING, AND THREAT DETECTION POLICIES</p>
+        </div>
+        <div>
+            <span class="badge bg-dark border border-secondary text-mono p-2">
+                <i class="bi bi-cpu text-warning me-1"></i> POLICY ACTIVE
+            </span>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs border-secondary mb-4" id="intelTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active text-mono font-display py-2 px-4" id="indicators-tab" data-bs-toggle="tab" data-bs-target="#indicators" type="button" role="tab" aria-controls="indicators" aria-selected="true">
+                <i class="bi bi-shield-exclamation me-2"></i>Active IOCs
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-mono font-display py-2 px-4" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab" aria-controls="matches" aria-selected="false">
+                <i class="bi bi-lightning-charge me-2"></i>Match History
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link text-mono font-display py-2 px-4" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">
+                <i class="bi bi-gear me-2"></i>Detection Settings
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="intelTabsContent">
+        
+        <!-- Tab 1: Active IOCs -->
+        <div class="tab-pane fade show active" id="indicators" role="tabpanel" aria-labelledby="indicators-tab">
+            <div class="row g-4">
+                <!-- Manual Creation Form & File Ingestion Card -->
+                <div class="col-12 col-xl-4">
+                    <div class="cyber-card mb-4">
+                        <div class="cyber-card-header">
+                            <h6 class="text-light mb-0 font-display"><i class="bi bi-plus-square text-success me-2"></i> Create IOC Indicator</h6>
+                        </div>
+                        <div class="p-3">
+                            <form method="POST" action="{{ url_for('iocs.create_ioc') }}">
+                                <div class="mb-3">
+                                    <label for="ioc_type" class="filter-label mb-1">Indicator Type</label>
+                                    <select name="ioc_type" id="ioc_type" class="form-select form-control-cyber text-mono">
+                                        <option value="IP Address">IP Address</option>
+                                        <option value="Domain">Domain</option>
+                                        <option value="URL">URL</option>
+                                        <option value="File Hash">File Hash (MD5/SHA256)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="value" class="filter-label mb-1">Indicator Value</label>
+                                    <input type="text" name="value" id="value" class="form-control form-control-cyber text-mono" placeholder="e.g. 185.220.101.5, bad-domain.ru" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="severity" class="filter-label mb-1">Severity Level</label>
+                                    <select name="severity" id="severity" class="form-select form-control-cyber">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Critical">Critical</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="filter-label mb-1">Context / Description</label>
+                                    <textarea name="description" id="description" class="form-control form-control-cyber text-mono" rows="2" placeholder="e.g. Cobalt Strike C2 IP"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-cyber w-100">Add Indicator</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="cyber-card">
+                        <div class="cyber-card-header">
+                            <h6 class="text-light mb-0 font-display"><i class="bi bi-file-earmark-arrow-up text-success me-2"></i> Ingest Threat Feed (CSV)</h6>
+                        </div>
+                        <div class="p-3">
+                            <form method="POST" action="{{ url_for('iocs.upload_iocs') }}" enctype="multipart/form-data">
+                                <div class="upload-dropzone p-4" id="uploadDropzone" style="cursor: pointer;">
+                                    <i class="bi bi-cloud-arrow-up-fill upload-icon d-block fs-3 mb-2 text-success"></i>
+                                    <span class="text-mono text-light" style="font-size: 0.85rem;">Click or Drop CSV File</span>
+                                    <small class="text-muted d-block text-mono mt-1" style="font-size: 0.7rem;">Expected: ioc_type, value, severity, description</small>
+                                    <input type="file" name="file" id="fileInput" class="d-none" accept=".csv" required>
+                                </div>
+                                <div id="selectedFiles" class="text-mono mt-2" style="font-size: 0.8rem;"></div>
+                                <button type="submit" class="btn btn-cyber w-100 mt-3">Upload Threat List</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IOC Indicators Table -->
+                <div class="col-12 col-xl-8">
+                    <div class="cyber-card">
+                        <div class="cyber-card-header d-flex justify-content-between align-items-center">
+                            <h6 class="text-light mb-0 font-display"><i class="bi bi-list-stars text-success me-2"></i> Active Threat Indicators</h6>
+                            <span class="badge bg-dark border border-secondary text-mono">{{ indicators | length }} Active Indicators</span>
+                        </div>
+                        <div class="table-responsive" style="max-height: 590px;">
+                            <table class="table table-cyber mb-0 align-middle">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%;">Type</th>
+                                        <th style="width: 35%;">Value</th>
+                                        <th style="width: 15%;">Severity</th>
+                                        <th style="width: 20%;">Added By</th>
+                                        <th style="width: 10%;" class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if indicators %}
+                                    {% for indicator in indicators %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-dark border border-secondary text-mono" style="font-size: 0.75rem;">{{ indicator.ioc_type }}</span>
+                                        </td>
+                                        <td class="text-mono text-light text-wrap text-break">
+                                            <code>{{ indicator.value }}</code>
+                                            {% if indicator.description %}
+                                            <div class="text-muted" style="font-size: 0.75rem;">{{ indicator.description }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge-cyber {% if indicator.severity == 'Critical' %}badge-critical{% elif indicator.severity == 'High' %}badge-high{% elif indicator.severity == 'Medium' %}badge-medium{% else %}badge-low{% endif %}">
+                                                {{ indicator.severity }}
+                                            </span>
+                                        </td>
+                                        <td class="text-mono" style="font-size: 0.85rem;">
+                                            <i class="bi bi-person-fill text-muted me-1"></i> {{ indicator.creator.username if indicator.creator else 'System' }}
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="POST" action="{{ url_for('iocs.delete_ioc', ioc_id=indicator.id) }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2 text-mono" style="font-size: 0.75rem;">
+                                                    Remove
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-5">
+                                            <i class="bi bi-shield-slash fs-2 text-warning d-block mb-2"></i>
+                                            Threat feeds empty. Manual register or upload a CSV indicator database.
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Match History -->
+        <div class="tab-pane fade" id="matches" role="tabpanel" aria-labelledby="matches-tab">
+            <div class="cyber-card">
+                <div class="cyber-card-header d-flex justify-content-between align-items-center">
+                    <h6 class="text-light mb-0 font-display"><i class="bi bi-lightning-charge text-warning me-2"></i> MATCHED EVENT INTEL HISTORICAL RECORD</h6>
+                    <span class="badge bg-dark border border-secondary text-mono">{{ matches | length }} Threat Detections</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-cyber mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Match Time</th>
+                                <th style="width: 15%;">Indicator Type</th>
+                                <th style="width: 25%;">Matched Value</th>
+                                <th style="width: 15%;">Source IP</th>
+                                <th style="width: 30%;">Match Context Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if matches %}
+                            {% for match in matches %}
+                            <tr>
+                                <td class="text-mono text-muted" style="font-size: 0.85rem;">
+                                    {{ match.matched_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark border border-secondary text-mono text-uppercase" style="font-size: 0.7rem;">{{ match.indicator.ioc_type if match.indicator else 'Indicator Removed' }}</span>
+                                </td>
+                                <td class="text-mono text-light">
+                                    <code>{{ match.matched_value }}</code>
+                                </td>
+                                <td class="text-mono fw-bold text-info">
+                                    {{ match.event.source_ip if match.event else 'N/A' }}
+                                </td>
+                                <td style="font-size: 0.85rem;" class="text-wrap">
+                                    <span class="text-muted">{{ match.details }}</span>
+                                    {% if match.security_event_id %}
+                                    <a href="{{ url_for('main.events') }}?source_ip={{ match.event.source_ip if match.event else '' }}" class="d-block text-success text-mono mt-1" style="font-size: 0.75rem;">
+                                        <i class="bi bi-search me-1"></i>Investigate In Threat Explorer
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">
+                                    <i class="bi bi-check-circle fs-2 text-success d-block mb-2"></i>
+                                    Clear. No telemetry matched threat indicators.
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: settings -->
+        <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+            <div class="row">
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="cyber-card">
+                        <div class="cyber-card-header">
+                            <h6 class="text-light mb-0 font-display"><i class="bi bi-sliders text-success me-2"></i> Correlation Policy Parameters</h6>
+                        </div>
+                        <div class="p-3">
+                            <form method="POST" action="{{ url_for('iocs.save_settings') }}">
+                                <div class="mb-3">
+                                    <label for="brute_force_threshold" class="filter-label mb-1">Brute Force Failure Threshold</label>
+                                    <input type="number" name="brute_force_threshold" id="brute_force_threshold" class="form-control form-control-cyber text-mono" value="{{ brute_force_threshold }}" min="1" max="100" required>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Number of failed logins from a single IP address that triggers a Brute Force Alert and escalates severity rules.</small>
+                                </div>
+                                <button type="submit" class="btn btn-cyber w-100">Save Configuration</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

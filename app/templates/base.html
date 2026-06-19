@@ -39,6 +39,14 @@
                     href="{{ url_for('main.events') }}">
                     <i class="bi bi-shield-slash me-2"></i> Threat Explorer
                 </a>
+                <a class="nav-link {% if request.endpoint == 'alerts.index' %}active{% endif %}"
+                    href="{{ url_for('alerts.index') }}">
+                    <i class="bi bi-exclamation-triangle me-2"></i> Alerts Cockpit
+                </a>
+                <a class="nav-link {% if request.endpoint == 'iocs.index' %}active{% endif %}"
+                    href="{{ url_for('iocs.index') }}">
+                    <i class="bi bi-activity me-2"></i> Threat Intelligence
+                </a>
                 {% if g.user.role == 'admin' %}
                 <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}"
                     href="{{ url_for('admin.users') }}">
@@ -46,6 +54,7 @@
                 </a>
                 {% endif %}
             </nav>
+
             {% endif %}
         </div>
 

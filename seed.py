@@ -1,4 +1,5 @@
 import datetime
+import os
 from app import create_app, db
 from app.models.user import User
 from app.models.uploaded_log import UploadedLog
@@ -6,6 +7,11 @@ from app.models.security_event import SecurityEvent
 from app.models.alert import Alert
 from app.models.ioc import IOCIndicator, IOCMatch
 from app.models.setting import SystemSetting
+from app.models.incident import Incident
+from app.models.incident_note import IncidentNote
+from app.models.audit_log import AuditLog
+from app.models.report import Report
+from app.services.pdf_generator import PDFReportGenerator
 from app.services.geoip_service import GeoIPService
 
 def seed_database():
@@ -279,14 +285,120 @@ def seed_database():
             created_at=ev_pat_success.timestamp
         )
         db.session.add(alert_pat)
+        db.session.flush()
+
+        # 3. Default Viewer Account
+        viewer = User(
+            username='viewer',
+            email='viewer@sentinelxdr.com',
+            role='viewer'
+        )
+        viewer.set_password('viewer123!')
+        db.session.add(viewer)
+        db.session.flush()
+
+        # --- SEED INCIDENTS ---
+        print("Provisioning mock incidents...")
+        # Incident 1 from Russian IP Brute Force
+        inc1 = Incident(
+            title="Incident #1: Russian IP Brute Force Attack",
+            description="System flagged 11 failed authentication attempts on ftpuser from Russian host. Critical containment triggered.",
+            severity="Critical",
+            status="Investigating",
+            assigned_to_id=analyst.id,
+            alert_id=alert_bf_ru.id,
+            created_at=alert_bf_ru.created_at
+        )
+        inc1.add_timeline_event("Incident declared from correlated brute force alert.", "System")
+        inc1.add_timeline_event("Assigned to analyst.", "admin")
+        inc1.add_timeline_event("Started security analysis.", "analyst")
+        db.session.add(inc1)
+
+        # Incident 2 from Medium Brute Force Alert
+        inc2 = Incident(
+            title="Incident #2: Suspicious Login Pattern from External IP",
+            description="Suspicious login pattern detected from 82.20.10.5. Investigating potential credential guessing.",
+            severity="Medium",
+            status="Open",
+            assigned_to_id=None,
+            alert_id=alert_bf_2.id,
+            created_at=alert_bf_2.created_at
+        )
+        inc2.add_timeline_event("Incident declared.", "System")
+        db.session.add(inc2)
+        db.session.flush()
+
+        # --- SEED NOTES ---
+        print("Provisioning mock investigation notes...")
+        note1 = IncidentNote(
+            incident_id=inc1.id,
+            user_id=analyst.id,
+            note_text="## Primary Investigation Notes\n\n- Flagged host `185.100.20.5` which originates from Russian ISP space.\n- Target service: FTP logons.\n- **Containment Status**: Commenced firewall shun rule for IP range `185.100.20.0/24`.",
+            created_at=inc1.created_at + datetime.timedelta(minutes=30)
+        )
+        db.session.add(note1)
+
+        # --- SEED AUDIT LOGS ---
+        print("Provisioning mock audit logs...")
+        log1 = AuditLog(
+            username="admin",
+            action_type="User Action",
+            details="Provisioned user 'analyst' with role 'analyst'",
+            ip_address="127.0.0.1",
+            timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=5)
+        )
+        log2 = AuditLog(
+            username="analyst",
+            action_type="Login",
+            details="User 'analyst' authenticated successfully.",
+            ip_address="192.168.1.15",
+            timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=4)
+        )
+        log3 = AuditLog(
+            username="analyst",
+            action_type="Incident Action",
+            details=f"Updated Incident #{inc1.id}: Status updated from 'Open' to 'Investigating'",
+            ip_address="192.168.1.15",
+            timestamp=inc1.created_at + datetime.timedelta(minutes=15)
+        )
+        db.session.add(log1)
+        db.session.add(log2)
+        db.session.add(log3)
+
+        # --- SEED REPORTS ---
+        print("Provisioning mock compliance reports...")
+        rep = Report(
+            report_type="Daily SOC Report",
+            title="Daily SOC Performance Summary - Seed Log",
+            created_by_id=admin.id,
+            executive_summary="Daily compliance check showing stable security levels and resolution parameters.",
+            findings="No active compromises. Brute force traffic contained successfully.",
+            recommendations="Audit firewall parameters and ensure brute force thresholds are set to 5.",
+            charts_data={'severity': {'labels': ['Low', 'Medium', 'High', 'Critical'], 'counts': [0, 1, 1, 3]}},
+            pdf_path="uploads/reports/seed_soc_report.pdf",
+            created_at=datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        )
+        db.session.add(rep)
+        db.session.flush()
+
+        # Compile PDF Report file
+        reports_dir = os.path.join(app.static_folder, 'uploads', 'reports')
+        os.makedirs(reports_dir, exist_ok=True)
+        pdf_file_path = os.path.join(reports_dir, "seed_soc_report.pdf")
+        try:
+            PDFReportGenerator.generate(rep, pdf_file_path)
+            print("Successfully pre-generated seeded report PDF.")
+        except Exception as e:
+            print(f"Warning: Failed to generate seeded PDF file: {e}")
 
         db.session.commit()
         geoip.close()
         print("Database successfully seeded.")
         print("-" * 50)
         print("Credentials:")
-        print("1. Admin Account:  admin    / SentinelXDR2026!")
-        print("2. Analyst Account: analyst  / analyst123!")
+        print("1. Admin Account:    admin    / SentinelXDR2026!")
+        print("2. Analyst Account:  analyst  / analyst123!")
+        print("3. Viewer Account:   viewer   / viewer123!")
         print("-" * 50)
 
 if __name__ == '__main__':

@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database files
+*.db
+*.sqlite3
+
+# User uploads & compiled reports
+app/static/uploads/screenshots/*
+!app/static/uploads/screenshots/.gitkeep
+app/static/uploads/reports/*
+!app/static/uploads/reports/.gitkeep
+uploads/*
+!uploads/.gitkeep
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE / editor configurations
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

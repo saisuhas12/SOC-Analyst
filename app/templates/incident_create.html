@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Declare Incident - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 800px; margin: 0 auto;">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">DECLARE SECURITY INCIDENT</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">INITIATE THREAT containment SEQUENCE</p>
+        </div>
+        <div>
+            <a href="{{ url_for('incidents.index') }}" class="btn btn-outline-secondary text-mono">
+                <i class="bi bi-arrow-left me-1"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Creation Card -->
+    <div class="cyber-card p-4">
+        <h5 class="text-light mb-3 font-display"><i class="bi bi-shield-exclamation text-danger me-2"></i> INCIDENT DETAILS</h5>
+        <p class="text-muted small">
+            Declare a new security incident. If linked to an alert, details are automatically parsed from logs to populate fields.
+        </p>
+
+        <form action="{{ url_for('incidents.create') }}" method="POST">
+            {% if prefill.get('alert_id') %}
+            <input type="hidden" name="alert_id" value="{{ prefill.alert_id }}">
+            <div class="alert alert-cyber alert-info mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-link-45deg me-2 fs-5 text-info"></i>
+                    <div class="text-mono" style="font-size: 0.8rem;">Linking incident to Alert #{{ prefill.alert_id }}. Incident will auto-assign and acknowledge the alert status.</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="title" class="filter-label mb-1">Incident Title</label>
+                <input type="text" class="form-control form-control-cyber text-mono" id="title" name="title" value="{{ prefill.get('title', '') }}" placeholder="e.g. Unauthenticated SSH Brute Force from Unknown IP" required>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-12 col-md-6">
+                    <label for="severity" class="filter-label mb-1">Incident Severity</label>
+                    <select name="severity" id="severity" class="form-select form-control-cyber text-mono">
+                        <option value="Low" {% if prefill.get('severity') == 'Low' %}selected{% endif %}>Low (P4)</option>
+                        <option value="Medium" {% if prefill.get('severity') == 'Medium' or not prefill.get('severity') %}selected{% endif %}>Medium (P3)</option>
+                        <option value="High" {% if prefill.get('severity') == 'High' %}selected{% endif %}>High (P2)</option>
+                        <option value="Critical" {% if prefill.get('severity') == 'Critical' %}selected{% endif %}>Critical (P1)</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="assigned_to_id" class="filter-label mb-1">Assigned Analyst</label>
+                    <select name="assigned_to_id" id="assigned_to_id" class="form-select form-control-cyber text-mono">
+                        <option value="0">Unassigned</option>
+                        {% for u in users %}
+                            {% if u.role != 'viewer' %}
+                            <option value="{{ u.id }}" {% if prefill.get('assigned_to_id') == u.id or (not prefill.get('assigned_to_id') and session.get('user_id') == u.id) %}selected{% endif %}>
+                                {{ u.username }} ({{ u.role | upper }})
+                            </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="description" class="filter-label mb-1">Incident Description & Investigation Blueprint</label>
+                <textarea class="form-control form-control-cyber text-mono" id="description" name="description" rows="8" placeholder="Outline the symptoms, affected endpoints, matched threat actors, and scope of compromise..." required>{{ prefill.get('description', '') }}</textarea>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-cyber">
+                    <i class="bi bi-shield-check me-2"></i>Declare Incident & Start Containment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

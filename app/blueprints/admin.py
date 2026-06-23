@@ -1,7 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.models.user import User
+from app.models.audit_log import AuditLog
 from app.database import db
 from app.utils.decorators import admin_required
+from app.utils.audit import log_audit_event
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -28,6 +30,7 @@ def users():
             new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
+            log_audit_event('User Action', f"Provisioned user '{username}' with role '{role}'")
             flash(f'Successfully provisioned user: {username} ({role}).', 'success')
         except Exception as e:
             db.session.rollback()
@@ -49,9 +52,32 @@ def delete_user(user_id):
     try:
         db.session.delete(user)
         db.session.commit()
+        log_audit_event('User Action', f"Deprovisioned user '{user.username}' (role was '{user.role}')")
         flash(f'User {user.username} has been deprovisioned.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting user: {str(e)}', 'danger')
         
     return redirect(url_for('admin.users'))
+
+@admin_bp.route('/audit-logs')
+@admin_required
+def audit_logs():
+    action_filter = request.args.get('action_type', '').strip()
+    username_filter = request.args.get('username', '').strip()
+    
+    query = AuditLog.query
+    if action_filter and action_filter != 'ALL':
+        query = query.filter(AuditLog.action_type == action_filter)
+    if username_filter:
+        query = query.filter(AuditLog.username.ilike(f'%{username_filter}%'))
+        
+    logs = query.order_by(AuditLog.timestamp.desc()).all()
+    action_types = ['Login', 'Logout', 'Alert Action', 'Incident Action', 'User Action']
+    
+    return render_template(
+        'audit_logs.html',
+        logs=logs,
+        action_types=action_types,
+        filters=request.args
+    )

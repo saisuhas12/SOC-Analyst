@@ -13,7 +13,7 @@ def create_app(config_class=Config):
     
     # Ensure tables are created
     with app.app_context():
-        from app.models import user, uploaded_log, security_event, alert, ioc, setting
+        from app.models import user, uploaded_log, security_event, alert, ioc, setting, incident, incident_note, audit_log, report
         db.create_all()
 
 
@@ -37,6 +37,8 @@ def create_app(config_class=Config):
     from app.blueprints.admin import admin_bp
     from app.blueprints.alerts import alerts_bp
     from app.blueprints.iocs import iocs_bp
+    from app.blueprints.incidents import incidents_bp
+    from app.blueprints.reports import reports_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -44,6 +46,8 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(alerts_bp)
     app.register_blueprint(iocs_bp)
+    app.register_blueprint(incidents_bp)
+    app.register_blueprint(reports_bp)
 
     
     # Custom template filter for humanizing bytes sizes

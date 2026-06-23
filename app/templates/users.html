@@ -45,8 +45,9 @@
                     <div class="mb-4">
                         <label for="role" class="filter-label mb-1">Role Type</label>
                         <select name="role" id="role" class="form-select form-control-cyber text-mono">
-                            <option value="analyst" selected>Security Analyst (Default)</option>
-                            <option value="admin">SOC Admin / Manager</option>
+                            <option value="analyst" selected>SOC Analyst (Default)</option>
+                            <option value="admin">Super Admin</option>
+                            <option value="viewer">Viewer</option>
                         </select>
                     </div>
 
@@ -91,8 +92,8 @@
                                     {{ u.email }}
                                 </td>
                                 <td>
-                                    <span class="badge {% if u.role == 'admin' %}bg-danger{% else %}bg-secondary{% endif %} text-mono" style="font-size: 0.7rem;">
-                                        {{ u.role | upper }}
+                                    <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'analyst' %}bg-secondary{% else %}bg-info{% endif %} text-mono" style="font-size: 0.7rem;">
+                                        {{ 'SUPER ADMIN' if u.role == 'admin' else ('SOC ANALYST' if u.role == 'analyst' else 'VIEWER') }}
                                     </span>
                                 </td>
                                 <td class="text-muted text-mono" style="font-size: 0.8rem;">

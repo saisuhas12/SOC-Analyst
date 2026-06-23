@@ -43,6 +43,14 @@
                     href="{{ url_for('alerts.index') }}">
                     <i class="bi bi-exclamation-triangle me-2"></i> Alerts Cockpit
                 </a>
+                <a class="nav-link {% if request.blueprint == 'incidents' %}active{% endif %}"
+                    href="{{ url_for('incidents.index') }}">
+                    <i class="bi bi-shield-shaded me-2"></i> Incidents Cockpit
+                </a>
+                <a class="nav-link {% if request.blueprint == 'reports' %}active{% endif %}"
+                    href="{{ url_for('reports.index') }}">
+                    <i class="bi bi-file-earmark-bar-graph me-2"></i> Reports Center
+                </a>
                 <a class="nav-link {% if request.endpoint == 'iocs.index' %}active{% endif %}"
                     href="{{ url_for('iocs.index') }}">
                     <i class="bi bi-activity me-2"></i> Threat Intelligence
@@ -51,6 +59,10 @@
                 <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}"
                     href="{{ url_for('admin.users') }}">
                     <i class="bi bi-people me-2"></i> User Provisioning
+                </a>
+                <a class="nav-link {% if request.endpoint == 'admin.audit_logs' %}active{% endif %}"
+                    href="{{ url_for('admin.audit_logs') }}">
+                    <i class="bi bi-clock-history me-2"></i> Audit Logging
                 </a>
                 {% endif %}
             </nav>

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Incidents Cockpit - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">INCIDENT MANAGEMENT WORKSPACE</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">COGNITIVE THREAT CONTAINMENT & RESPONSE</p>
+        </div>
+        <div>
+            {% if session.get('role') != 'viewer' %}
+            <a href="{{ url_for('incidents.create') }}" class="btn btn-cyber">
+                <i class="bi bi-shield-plus me-2"></i>Declare Incident
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="filter-panel">
+        <form action="{{ url_for('incidents.index') }}" method="GET" class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label for="status" class="filter-label mb-1">Incident Status</label>
+                <select name="status" id="status" class="form-select form-control-cyber text-mono">
+                    <option value="ALL" {% if filters.get('status') == 'ALL' or not filters.get('status') %}selected{% endif %}>ALL STATUSES</option>
+                    <option value="Open" {% if filters.get('status') == 'Open' %}selected{% endif %}>OPEN</option>
+                    <option value="Investigating" {% if filters.get('status') == 'Investigating' %}selected{% endif %}>INVESTIGATING</option>
+                    <option value="Resolved" {% if filters.get('status') == 'Resolved' %}selected{% endif %}>RESOLVED</option>
+                    <option value="Closed" {% if filters.get('status') == 'Closed' %}selected{% endif %}>CLOSED</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label for="severity" class="filter-label mb-1">Impact Severity</label>
+                <select name="severity" id="severity" class="form-select form-control-cyber text-mono">
+                    <option value="ALL" {% if filters.get('severity') == 'ALL' or not filters.get('severity') %}selected{% endif %}>ALL SEVERITIES</option>
+                    <option value="Low" {% if filters.get('severity') == 'Low' %}selected{% endif %}>LOW</option>
+                    <option value="Medium" {% if filters.get('severity') == 'Medium' %}selected{% endif %}>MEDIUM</option>
+                    <option value="High" {% if filters.get('severity') == 'High' %}selected{% endif %}>HIGH</option>
+                    <option value="Critical" {% if filters.get('severity') == 'Critical' %}selected{% endif %}>CRITICAL</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-cyber flex-grow-1">
+                    <i class="bi bi-funnel me-2"></i>Filter
+                </button>
+                <a href="{{ url_for('incidents.index') }}" class="btn btn-outline-secondary text-mono flex-grow-1">
+                    <i class="bi bi-x-circle me-1"></i>Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Incidents Table -->
+    <div class="cyber-card">
+        <div class="cyber-card-header d-flex justify-content-between align-items-center">
+            <h5 class="text-light mb-0 font-display"><i class="bi bi-shield-shaded text-success me-2"></i> ACTIVE PLATFORM INCIDENTS</h5>
+            <span class="badge bg-dark border border-secondary text-mono">{{ incidents | length }} Registered Incidents</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-cyber mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Incident ID</th>
+                        <th>Title</th>
+                        <th>Assigned Analyst</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if incidents %}
+                        {% for inc in incidents %}
+                        <tr>
+                            <td class="text-success text-mono font-weight-bold" style="font-size: 0.85rem;">
+                                #INC-{{ inc.id }}
+                            </td>
+                            <td class="text-light text-mono" style="font-size: 0.85rem; font-weight: 600;">
+                                {{ inc.title }}
+                                {% if inc.alert_id %}
+                                    <span class="badge bg-dark border border-info text-info text-mono ms-2" style="font-size: 0.6rem;">ALERT #{{ inc.alert_id }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-light text-mono" style="font-size: 0.85rem;">
+                                {{ inc.assigned_user.username if inc.assigned_user else 'Unassigned' }}
+                            </td>
+                            <td>
+                                <span class="badge-cyber badge-{{ inc.severity | lower }}">
+                                    {{ inc.severity }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border text-mono {% if inc.status == 'Open' %}border-danger text-danger{% elif inc.status == 'Investigating' %}border-warning text-warning{% elif inc.status == 'Resolved' %}border-success text-success{% else %}border-secondary text-secondary{% endif %}" style="font-size: 0.7rem; font-weight: 500;">
+                                    {{ inc.status | upper }}
+                                </span>
+                            </td>
+                            <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                {{ inc.created_at.strftime('%Y-%m-%d %H:%M') if inc.created_at else 'N/A' }}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('incidents.detail', incident_id=inc.id) }}" class="btn btn-sm btn-cyber py-0 px-2 text-mono" style="font-size: 0.75rem;">
+                                    Analyze
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4 text-mono">
+                                <i class="bi bi-check2-shield text-success fs-3 d-block mb-2"></i>
+                                NO CURRENT DETECTED INCIDENTS ON PLATFORM.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

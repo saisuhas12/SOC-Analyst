@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Audit Logs - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">SYSTEM AUDIT TRAIL</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">SECURE CRYPTO-COMPLIANT IAM & ACTIVITY LOGGER</p>
+        </div>
+        <div>
+            <span class="badge bg-dark border border-danger text-mono p-2">
+                <i class="bi bi-shield-slash text-danger me-1"></i> CONTROL LEVEL: ADMIN READS ONLY
+            </span>
+        </div>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="filter-panel">
+        <form action="{{ url_for('admin.audit_logs') }}" method="GET" class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label for="action_type" class="filter-label mb-1">Action Category</label>
+                <select name="action_type" id="action_type" class="form-select form-control-cyber text-mono">
+                    <option value="ALL" {% if filters.get('action_type') == 'ALL' or not filters.get('action_type') %}selected{% endif %}>ALL CATEGORIES</option>
+                    {% for at in action_types %}
+                    <option value="{{ at }}" {% if filters.get('action_type') == at %}selected{% endif %}>{{ at | upper }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label for="username" class="filter-label mb-1">Username Lookup</label>
+                <input type="text" class="form-control form-control-cyber text-mono" id="username" name="username" value="{{ filters.get('username', '') }}" placeholder="e.g. admin">
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-cyber flex-grow-1">
+                    <i class="bi bi-funnel me-2"></i>Filter Logs
+                </button>
+                <a href="{{ url_for('admin.audit_logs') }}" class="btn btn-outline-secondary text-mono flex-grow-1">
+                    <i class="bi bi-x-circle me-1"></i>Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Audit Logs Table -->
+    <div class="cyber-card">
+        <div class="cyber-card-header d-flex justify-content-between align-items-center">
+            <h5 class="text-light mb-0 font-display"><i class="bi bi-clock-history text-success me-2"></i> CRYPTOGRAPHIC ACTIVITY HISTORY</h5>
+            <span class="badge bg-dark border border-secondary text-mono">{{ logs | length }} Records Logged</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-cyber mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 180px;">Timestamp (UTC)</th>
+                        <th style="width: 140px;">Category</th>
+                        <th>User</th>
+                        <th>Action Details</th>
+                        <th style="width: 140px;">IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                        {% for log in logs %}
+                        <tr>
+                            <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else 'N/A' }}
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border text-mono {% if log.action_type == 'Login' %}border-info text-info{% elif log.action_type == 'Logout' %}border-secondary text-muted{% elif log.action_type == 'Alert Action' %}border-warning text-warning{% elif log.action_type == 'Incident Action' %}border-danger text-danger{% else %}border-success text-success{% endif %}" style="font-size: 0.7rem;">
+                                    {{ log.action_type | upper }}
+                                </span>
+                            </td>
+                            <td class="text-light text-mono" style="font-size: 0.85rem; font-weight: 600;">
+                                {{ log.username or 'System' }}
+                            </td>
+                            <td class="text-light text-mono" style="font-size: 0.85rem;">
+                                {{ log.details }}
+                            </td>
+                            <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                {{ log.ip_address or 'Unknown' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4 text-mono">
+                                <i class="bi bi-archive-fill text-danger fs-3 d-block mb-2"></i>
+                                NO AUDIT TRAIL DATA MATCHES THE GIVEN FILTER CRITERIA.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

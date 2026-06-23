@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports Workspace - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-light fw-bold mb-1">REPORTS ARCHIVE & GENERATION WORKSPACE</h2>
+            <p class="text-muted text-mono mb-0" style="font-size: 0.8rem;">CRYPTO-COMPLIANT AUDITS & PDF GENERATION CENTER</p>
+        </div>
+        <div>
+            <span class="badge bg-dark border border-success text-mono p-2">
+                <i class="bi bi-file-earmark-pdf text-success me-1"></i> FORMAT: REPORTLAB NATIVE GRAPHICS
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Report Generator Form -->
+        {% if session.get('role') != 'viewer' %}
+        <div class="col-12 col-xl-5">
+            <div class="cyber-card p-4">
+                <h5 class="text-light mb-3 font-display"><i class="bi bi-file-earmark-plus text-success me-2"></i> COMPILE REPORT DOCUMENT</h5>
+                <p class="text-muted small">
+                    Select a report template. The platform automatically aggregates security database logs, compiles native charts, and structures findings.
+                </p>
+
+                <form action="{{ url_for('reports.generate') }}" method="POST" id="reportForm">
+                    <input type="hidden" name="charts_data" id="charts_data" value="{}">
+
+                    <div class="mb-3">
+                        <label for="report_type" class="filter-label mb-1">Report Template</label>
+                        <select name="report_type" id="report_type" class="form-select form-control-cyber text-mono" required>
+                            <option value="" disabled selected>-- Select Template Type --</option>
+                            <option value="Daily SOC Report">Daily SOC Report (24h Summary)</option>
+                            <option value="Threat Summary Report">Threat Summary Report (All Time)</option>
+                            <option value="IOC Match Report">IOC Match Report (Threat Intelligence)</option>
+                            <option value="Incident Investigation Report">Incident Investigation Report (Single Case)</option>
+                        </select>
+                    </div>
+
+                    <!-- Incident Selector (Hidden by default, shown when 'Incident Investigation Report' is selected) -->
+                    <div class="mb-3 d-none" id="incident_selector_group">
+                        <label for="incident_id" class="filter-label mb-1">Select Incident Case File</label>
+                        <select name="incident_id" id="incident_id" class="form-select form-control-cyber text-mono">
+                            <option value="" disabled selected>-- Select Incident --</option>
+                            {% for inc in incidents %}
+                            <option value="{{ inc.id }}">#INC-{{ inc.id }} - {{ inc.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="title" class="filter-label mb-1">Document Title</label>
+                        <input type="text" class="form-control form-control-cyber text-mono" id="title" name="title" placeholder="Document Title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="executive_summary" class="filter-label mb-1">Section 1: Executive Summary</label>
+                        <textarea class="form-control form-control-cyber text-mono" id="executive_summary" name="executive_summary" rows="4" placeholder="Brief summary of operations..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="findings" class="filter-label mb-1">Section 2: Key Findings & Analysis</label>
+                        <textarea class="form-control form-control-cyber text-mono" id="findings" name="findings" rows="4" placeholder="Detailed logs and trace analysis findings..." required></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="recommendations" class="filter-label mb-1">Section 3: Mitigation & Recommendations</label>
+                        <textarea class="form-control form-control-cyber text-mono" id="recommendations" name="recommendations" rows="3" placeholder="Security updates, firewall shuns, credential rotations..." required></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-cyber" id="generateBtn">
+                            <i class="bi bi-file-pdf me-2"></i>Compile & Export PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 col-xl-5">
+            <div class="cyber-card p-4">
+                <h5 class="text-light mb-3 font-display"><i class="bi bi-lock-fill text-warning me-2"></i> SYSTEM PRIVILEGES</h5>
+                <p class="text-muted small">
+                    Account operates with <strong>Viewer</strong> privileges. You are allowed to read previous compiled cyber compliance documents, but generating new reports requires Analyst authorization.
+                </p>
+                <div class="alert alert-cyber alert-warning mb-0 text-mono text-center small">
+                    <i class="bi bi-shield-slash me-1"></i> GENERATION LOCKED: WRITE PRIVILEGES REQUIRED
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Generated Reports Archive -->
+        <div class="col-12 col-xl-7">
+            <div class="cyber-card">
+                <div class="cyber-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="text-light mb-0 font-display"><i class="bi bi-folder-check text-success me-2"></i> SECURITY COMPLIANCE ARCHIVE</h5>
+                    <span class="badge bg-dark border border-secondary text-mono">{{ reports | length }} Compiled Logs</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-cyber mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Report Title</th>
+                                <th>Type</th>
+                                <th>Generated By</th>
+                                <th>Created Date</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if reports %}
+                                {% for r in reports %}
+                                <tr>
+                                    <td class="text-light text-mono font-weight-bold" style="font-size: 0.85rem;">
+                                        {{ r.title }}
+                                    </td>
+                                    <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                        {{ r.report_type }}
+                                    </td>
+                                    <td class="text-light text-mono" style="font-size: 0.8rem;">
+                                        {{ r.creator.username if r.creator else 'System' }}
+                                    </td>
+                                    <td class="text-muted text-mono" style="font-size: 0.8rem;">
+                                        {{ r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else 'N/A' }}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('reports.download', report_id=r.id) }}" class="btn btn-sm btn-cyber py-0 px-2 text-mono" style="font-size: 0.75rem;">
+                                            <i class="bi bi-download me-1"></i> PDF
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4 text-mono">
+                                        <i class="bi bi-file-earmark-break text-danger fs-3 d-block mb-2"></i>
+                                        NO SYSTEM REPORTS COMPILED TO DATE.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const reportTypeSelect = document.getElementById('report_type');
+        const incidentSelectorGroup = document.getElementById('incident_selector_group');
+        const incidentSelect = document.getElementById('incident_id');
+        
+        const titleInput = document.getElementById('title');
+        const summaryInput = document.getElementById('executive_summary');
+        const findingsInput = document.getElementById('findings');
+        const recsInput = document.getElementById('recommendations');
+        const chartsDataInput = document.getElementById('charts_data');
+        const generateBtn = document.getElementById('generateBtn');
+
+        // Handles changing report template type
+        if (reportTypeSelect) {
+            reportTypeSelect.addEventListener('change', () => {
+                const selectedType = reportTypeSelect.value;
+                if (selectedType === 'Incident Investigation Report') {
+                    // Show incident selector dropdown
+                    incidentSelectorGroup.classList.remove('d-none');
+                    incidentSelect.setAttribute('required', 'true');
+                    
+                    // Clear inputs until incident is selected
+                    titleInput.value = '';
+                    summaryInput.value = '';
+                    findingsInput.value = '';
+                    recsInput.value = '';
+                    chartsDataInput.value = '{}';
+                } else {
+                    // Hide incident selector dropdown
+                    incidentSelectorGroup.classList.add('d-none');
+                    incidentSelect.removeAttribute('required');
+                    incidentSelect.value = '';
+                    
+                    // Fetch pre-populated content for global templates
+                    fetchPrefillData(selectedType, '');
+                }
+            });
+        }
+
+        // Handles changing linked incident case file
+        if (incidentSelect) {
+            incidentSelect.addEventListener('change', () => {
+                const selectedType = reportTypeSelect.value;
+                const selectedIncident = incidentSelect.value;
+                if (selectedType && selectedIncident) {
+                    fetchPrefillData(selectedType, selectedIncident);
+                }
+            });
+        }
+
+        function fetchPrefillData(reportType, incidentId) {
+            if (generateBtn) {
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Aggregating Logs...';
+            }
+            
+            let url = `/reports/prefill-data?report_type=${encodeURIComponent(reportType)}`;
+            if (incidentId) {
+                url += `&incident_id=${encodeURIComponent(incidentId)}`;
+            }
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    titleInput.value = data.title || '';
+                    summaryInput.value = data.executive_summary || '';
+                    findingsInput.value = data.findings || '';
+                    recsInput.value = data.recommendations || '';
+                    chartsDataInput.value = JSON.stringify(data.charts_data || {});
+                })
+                .catch(err => {
+                    console.error("Error pre-populating report: ", err);
+                })
+                .finally(() => {
+                    if (generateBtn) {
+                        generateBtn.disabled = false;
+                        generateBtn.innerHTML = '<i class="bi bi-file-pdf me-2"></i>Compile & Export PDF';
+                    }
+                });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}500 - Core Exception - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height: 70vh;">
+    <div class="text-center cyber-card p-5" style="max-width: 550px; border-top: 4px solid var(--accent-critical);">
+        <i class="bi bi-radioactive text-critical display-1 mb-4 d-block" style="text-shadow: 0 0 15px rgba(255, 23, 68, 0.4); animation: pulse-border 1.5s infinite;"></i>
+        <h2 class="text-light fw-bold font-display mb-2">ERROR 500: CORE MELTDOWN</h2>
+        <p class="text-muted text-mono mb-4" style="font-size: 0.8rem;">INTERNAL TELEMETRY EXCEPTION ENCOUNTERED</p>
+        <p class="text-light mb-4 small">
+            The platform service encountered an unexpected database query exception or system failure. Database operations have been rolled back to protect session integrity.
+        </p>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-cyber">
+            <i class="bi bi-arrow-clockwise me-2"></i>Retry Platform Actions
+        </a>
+    </div>
+</div>
+{% endblock %}

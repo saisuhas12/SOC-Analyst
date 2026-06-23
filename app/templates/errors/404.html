@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Sector Not Found - SOC Sentinel XDR{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height: 70vh;">
+    <div class="text-center cyber-card p-5" style="max-width: 550px; border-top: 2px solid var(--accent-danger);">
+        <i class="bi bi-shield-exclamation text-danger display-1 mb-4 d-block" style="text-shadow: 0 0 15px rgba(255, 145, 0, 0.4);"></i>
+        <h2 class="text-light fw-bold font-display mb-2">ERROR 404: SECTOR NOT FOUND</h2>
+        <p class="text-muted text-mono mb-4" style="font-size: 0.8rem;">GRID COORDINATES RESTRICTED OR UNMAPPED</p>
+        <p class="text-light mb-4 small">
+            The database page or telemetry directory you requested does not exist on this compartment. Access has been denied or the resource was deprovisioned.
+        </p>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-cyber">
+            <i class="bi bi-speedometer2 me-2"></i>Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
